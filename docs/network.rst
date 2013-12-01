@@ -42,10 +42,15 @@ SKT T-Login은 KT 모뎀에 비해 쉽게 설치가 가능하다. 3가지 방법
 
 ubuntu에서는 유무선랜 연결을 관리하기 위한 프로그램을 내장하고 있으며,
 GUI환경에서 우상단의 트레이 아이콘을 눌러 조작할 수 있다.
-USB 모뎀을 연결하고 2분정도를 기다리면, 통신 아이콘을 눌렀을 때 
-sk-telecom이라고 써진다.
+USB 모뎀을 연결하고 2분정도를 기다리면, Natilus 에서 다음과 같이 USB 저장장치가 
+잡힌 것을 확인할 수 있다. usb_modswitch 라는 프로그램이 이 일을 자동으로 처리해 준다.
+즉 usb_modswitch는 USB형태의 통신 모뎀은 
+ 
+.. image:: _static/network/sk_modem1.png
 
-.. image:: _static/network/sk_modem1.jpg
+통신 아이콘을 눌렀을 때 sk-telecom이라고 써진다.
+
+.. image:: _static/network/sk_modem2.png
 
 
 
