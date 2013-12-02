@@ -17,6 +17,7 @@ ubuntu로 구축하는 원격시스템 모니터링 및 데이터 시각화
 
    intro
    serial
+   poweron
    network
    ssh
    modbus
