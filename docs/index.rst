@@ -16,6 +16,7 @@ ubuntu로 구축하는 원격시스템 모니터링 및 데이터 시각화
    :maxdepth: 2
 
    intro
+   serial
    network
    ssh
    modbus
