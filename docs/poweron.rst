@@ -1,70 +1,59 @@
-시리얼 케이블을 이용한 원격시스템 접속
---------------------------------------
+원격시스템 CMOS 설정
+--------------------
 
-본 글에서 사용하는 원격시스템의 실제 하드웨어는 
-Jetway 사에서 판매하는 통합 보드인 
+자동 power on
+^^^^^^^^^^^^^
+
+본 글에서 사용하는 원격시스템의 하드웨어인 
 `NF95A-270-LF
 <http://www.jetway.com.tw/jw/ipcboard_view.asp?productid=721&proname=NF95A-270-LF>`_
-을 이용한다. 국내에서는 
-`carpckorea <http://www.carpckorea.co.kr/>`_
-라는 업체에서 판매를 하고 있다. 
+은 꺼져있는 상태에서 전원이 공급될 경우 자동으로 켜지는 기능이 있다.
+사람이 직접 접근하기 어려운 원격지에 설치된 장비에 전원이 나갔을 경우
+전력이 복구된 후, 장비를 켜기 위해 사람이 투입된다면 엄청난 낭비일 것이다.
+그렇기 때문에 전원만 공급되면 항상 켜지는 기능이 필요하다
 
-.. note:: 이거 광고 아니고요.. 제가 carpckorea에서 물건을 좀 구매하긴 했지만, 사장님 절대 모릅니다. 사장님, 가격 너무 자주 그리고 많이 올리시는 거 아닙니까? 싸게 좀 팔아주세요~~
+.. 
+    아날로그 스위치가 사용되던 시절에는 당연한 이야기 이지만, 
+    요즘 사용되는 디지털 스위치는 물리적으로 켜져 있는 상태와 
+    꺼져있는 상태가 구분되지 않고 꺼져있는 상태에서 누르면 
+    켜지고 켜져있는 상태에서 누르면 꺼지는 식으로만 동작한다.
 
-이 보드에 우분투를 설치할 때는 모니터와 키보드를 연결해서 
-하지만, 일단 설치가 끝난 경우에는 여러 대를 쌓아놓고 시리얼로 
-필요한 장비에 연결하여 디버깅이나 업그레이드가 가능하다.
-본 절에서는 이 방법에 대해 살펴본다.
+CMOS에서 이를 설정할 수 있다. 먼저, 
+`ERP(EUP) <http://en.wikipedia.org/wiki/Energy-related_products>`_ 
+Function 을 Disable 로 설정한 후 
 
-먼저 PC와의 콘솔 연결을 위한 부팅 단계를 구분하고자 한다.
+.. image:: _static/poweron/poweron1.png
 
-#. 부트로더로 제어권이 넘어가기 전단계 (BIOS 단계)
-#. grub등의 부트로더가 시작되고 나서 로그인 프로프트 전단계 (부팅 단계)
-#. 사용자와의 인터랙션이 가능한 단계 (OS 단계)
+아래 그림과 같이
+PWR Status after PWR Failure 을 Always On으로 설정하면 된다.
 
-.. note:: ()안의 단계 이름들은 뭐 정해진 건 아니고... 제가 그냥 붙여 봤습니다.
+.. image:: _static/poweron/poweron2.png
 
-http://mcchae.egloos.com/10562163 을 보면, 위 3단계별로
-콘솔에서 출력을 받는 방법들이 설명되어 있다. 본 절에서는
-사용자와의 인터랙션이 가능한 OS 단계에서의 출력만을 설명할 것이다. 
+키보드 연결 없이 부팅하기
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-ubuntu 6.10 이후부터 소개된 개념으로 
-`upstart <http://upstart.ubuntu.com/getting-started.html>`_ 가 있다. 
-본 절에서는 upstart의 개념 자체가 중요한 것은 아니어서 자세히 
-설명하지는 않겠다. upstart는 부팅시에 구동되어야 하는 기능들을
-기술하는 방법으로 과거 init 가 하던 역할을 대체하고자 ubuntu를 만든
-canonical에서 개발하고 밀고 있는 방법이다.
-
-아무튼, 시리얼 콘솔 접속이 가능하도록 upstart의 스크립트를 
-``/etc/init/`` 아래에 작성한다. 화일이름은 어떻게 해도 좋으나,
-콘솔을 연결하기 위한 시리얼 포트의 이름을 붙인다. 
-예를 들어, ttyS2 (COM3) 를 시리얼 콘솔 포트로 사용하려면 
-``/etc/init/ttyS2`` 를 생성하고 아래 내용을 넣는다.
+NF95A-270-LF 에서는 키보드 연결을 하지 않을 경우 부팅이 되지 않는다.
+이를 방지하기 위해서 아래 설정을 해 주어야 한다.
 
 ::
 
-    start on runlevel [2345]
-    stop on runleve [!2345]
-    respawn
-    exec /sbin/getty -L 115200 ttyS2 vt102
+    CMOS > Standard CMOS Features > Halt on: All errors
 
-화일을 저장한 후 ``telinit 2`` 명령을 수행하여 
-runlevel을 2로 해 주면 ttyS2 스크립트가 실행되면서 
-콘솔을 이용할 준비가 끝난다.
+위에서 ``All errors`` 부분을 ``All but keyboard`` 로 변경한다.
 
-원격시스템의 ttyS2에 케이블을 연결한 후 콘솔에서 입출력이
-가능한지를 확인하라. 콘솔의 bps는 115200으로 설정해야 하며
-이 값은 ``/etc/init/ttyS2`` 에서 다른 값으로 변경하여 사용이 가능하다. 
+GRUB 설정 변경
+^^^^^^^^^^^^^^
+이 절은 CMOS에 관한 내용이 아니라 리눅스 부트로더인 GRUB에 대한 내용이다.
+GRUB은 부팅전에 사용자에게 어떤 OS로 부팅할 것인지, 다른 작업을 할 것인지를
+선택할 수 있도록 한다. ubuntu에서는 부트로더에서 사용자 입력을 받아들이기
+위해 일정시간을 대기하도록 한다. 
 
-.. note:: 시리얼 콘솔이 정상적으로 동작하지 않는다면, 콘솔을 연결한 상태에서 다음 명령으로 데이터를 보내 케이블이나 시리얼 포트 자체가 정상동작하는지를 확인하라. ::
+.. code-block::
 
-  $ stty -F /dev/ttyS2 speed 115200 cs8 -cstopb -parenb
-  $ echo 'test' > /dev/ttyS2  # 콘솔로 test라는 문자열을 보낸다.  
+4. sudo vi /boot/grub/grub.cfg
+    if [ ${recordfail} = 1 ]; then
+      set timeout=-1 ==> 1
+    else
+      set timeout=10
+    fi
 
-  또는 ``minicom`` 을 설치하여 양방향 문자 전송이 가능한지 확인하는 것도 
-  좋은 방법이다. 
-
-더 읽어보기
-
-* http://www.debuntu.org/how-to-set-up-a-serial-console-on-ubuntu/
-* http://www.vanemery.com/Linux/Serial/serial-console.html
