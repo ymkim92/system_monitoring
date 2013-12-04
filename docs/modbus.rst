@@ -248,16 +248,19 @@ IP 기반의 모드버스 구현은 TCP와 UDP 모두 가능하며, IETF에서 5
 
 
 * Data types
-  - Floating point IEEE
-  - 32-bit integer
-  - 8-bit data
-  - Mixed data types
-  - Bit fields in integers
-  - Multipliers to change data to/from integer. 10, 100, 1000, 256 ...
+
+  * Floating point IEEE
+  * 32-bit integer
+  * 8-bit data
+  * Mixed data types
+  * Bit fields in integers
+  * Multipliers to change data to/from integer. 10, 100, 1000, 256 ...
+
 * Protocol extensions
-  - 16-bit slave addresses
-  - 32-bit data size (1 address = 32 bits of data returned.)
-  - Word swapped data
+
+  * 16-bit slave addresses
+  * 32-bit data size (1 address = 32 bits of data returned.)
+  * Word swapped data
 
 
 제한
