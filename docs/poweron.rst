@@ -57,9 +57,10 @@ GRUB은 부팅전에 사용자에게 어떤 OS로 부팅할 것인지, 다른 �
 이상에서 언급한 내용들은 ``/boot/grub/grub.cfg`` 의 아래 내용 부분을 찾아
 
 
-.. code-block::
-
 4. sudo vi /boot/grub/grub.cfg
+
+.. code-block:: sh
+
     if [ ${recordfail} = 1 ]; then
       set timeout=-1 ==> 1
     else

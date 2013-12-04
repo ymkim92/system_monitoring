@@ -21,6 +21,8 @@ KT에서도 iplug라는 이름으로 판매한다.
 에그 타입    
 ^^^^^^^^^
 
+wpa 설정
+
 USB 타입
 ^^^^^^^^
 실험에 사용한 ubuntu 버전은 11.10이지만, 그 이후의 버전들에서 잘 
@@ -35,6 +37,9 @@ USB 타입
 
  통신 모뎀은 스마트폰에 비해 구입하기가 훨씬 까다로웠다. 대리점 방문전에
  전화로 확인해 보거나 인터넷으로 구매처를 확인해 보라.
+
+SKT T-Login 인식 시키기
+"""""""""""""""""""""""
 
 SKT T-Login은 KT 모뎀에 비해 쉽게 설치가 가능하다. 3가지 방법으로 사용이
 가능하며, 첫번째 방법은 ubuntu에서 기본적으로 제공하는 네트워크 연결
@@ -112,8 +117,11 @@ USB 모뎀을 연결하고 2분정도를 기다리면, Natilus 에서 다음과 
 .. tip:: 설정된 모뎀은 ppp0 라는 이름의 장치로 설정되었는데, 이 장치로 통신이 되는지를 검사해 보기 위해서는 eth0나 wlan0 등의 기존 통신 인터페이스를 꺼야 한다. 아래 명령으로 이를 수행할 수 있다. ::
  
     $ sudo iwconfig wlan0 txpower off
-    $ sudo ifconfig eth0 down
+    $ sudo ifconfig eth0 down 
 
+
+KT iplug 인식 시키기
+""""""""""""""""""""
 
 KT 모뎀을 인식시키기 위해서는 usb_modeswitch에 대한 지식이 필요하다.
 먼저 iplug를 PC에 연결하고 인식과정이 어디까지 진행되었는지 살펴봐야
@@ -127,10 +135,66 @@ KT 모뎀을 인식시키기 위해서는 usb_modeswitch에 대한 지식이 필
 ``ls`` 로 표시한 것이다. ``1-1`` 과 ``1-1:1.0`` 이 연결 후 추가된 것을
 확인할 수 있다.
 
-.. image:: _static/network/kt_modem2.png
+.. figure:: _static/network/kt_modem2.png
+    :scale: 70%
+
+``/sys/bus/usb/devices`` 폴더는 ubuntu에서 인식한 USB 장치들의 상세정보를 
+볼 수 있는 곳이다. usb1 ~ usb5 까지를 root hub라고 부르며, 숫자는 bus
+number 이다. 즉 이 장비에는 총 5개의 USB 버스가 장착되어 있음을 알 수 있다.
+N-0:1.0은 root hub의 인터페이스를 나타내는 특별한 장치이다. 
+즉 아무런 장치도 연결되어 있지 않더라도 이 폴더는 존재한다.
+이 예에서는, 1번 버스의 8번 포트에 장치가 하나 연결되어 있던 상태에서 
+USB 모뎀을 연결하자, 1번 포트로 인식된 상황이다.
+
+.. note:: 리눅스에서 usb 장치를 인식하는 인식하여 화일 시스템에 표시하는 자세한 내용은 http://www.linux-usb.org/FAQ.html 에서 ``/sys/bus/usb/devices`` 로 검색하면 찾을 수 있다.
+
+이렇게 인식이 된 상태에서 ``lsusb -v`` 을 실행하면, 다음 결과를 볼 수 있다.
+idVendor와 idProduct 값을 주의 깊게 보아야 한다. idVendor는 0x16d8 이며,
+idProduct는 7003으로 되어 있다.
+
+.. figure:: _static/network/kt_modem3.png
+
+usb_modeswitch에서는 이 두 값을 이용하여 자동으로 장치를 인식하나,
+위 설정값은 usb_modeswitch에 등록되어 있는 값이 아니다. 
+이를 등록하기 위해서는 두 가지 일을 해 주어야 한다. 첫째로, 
+``/lib/udev/rules.d/40-usb_modeswitch.rules`` 을 편집기로 열고나서
+16d8로 검색하여 700a의 내용을 복사하여 7003을 추가로 만들어야 한다.
+
+.. figure:: _static/network/kt_modem4.png
+
+두번째로, ``/usr/share/usb_modeswitch`` 로 이동하면 ``configPack.tar.gz``
+화일이 존재하며, 이 화일을 풀어 16d8:700a를 찾고 이를 복사하여 16d8:7003을
+생성한다.
+
+::
+
+    $ cd /usr/share/usb_modeswitch
+    $ sudo tar zxvf configPack.tar.gz
+    $ sudo cp 16d8:700a 16d8:7003
+
+.. figure:: _static/network/kt_modem5.png
+    :scale: 70%
+
+이제, USB 모뎀을 제거한 후 다시 연결하면 장치를 인식할 것이다.
+
+
+SKT와 KT 모뎀 동시에 인식 시키기
+""""""""""""""""""""""""""""""""
 
 
 
+.. figure:: _static/network/kt_modem6.png
+
+.. code-block:: sh
+
+    $ sudo wvdial –C /etc/wvdial1.conf
+    $ sudo wvdial –C /etc/wvdial2.conf
+
+.. figure:: _static/network/kt_modem7.png
+    :scale: 70%
+
+.. figure:: _static/network/kt_modem8.png
+    
 이중화
 
 이렇게 무선이동통신을 이용할 수 있으면 원격시스템에서 서버로의 접속이 
