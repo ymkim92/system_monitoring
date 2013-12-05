@@ -17,6 +17,10 @@ nagios
 openssl
 
 
+시각화
+------
+d3.js
+jarmon
  
 다수의 ubuntu 설치
 ------------------
