@@ -377,7 +377,7 @@ ttyUSB#에서 번호만 해당 장치에 맞게 변경해 주면 된다.
 
     wvdial -C /etc/wvdial1.conf &
 
-2,3,5 줄을 추가하여 wvdial에서 출력되는 내용들을 /tmp/rc.local.debug 에 
+2,3 줄을 추가하여 wvdial에서 출력되는 내용들을 /tmp/rc.local.debug 에 
 저장할 수 있다.
 
 .. note:: 부팅후에 USB 모뎀을 꽂고 wvdial을 실행시키면 잘 인식이 되지만, 스크립트를 적용시키고 USB 모뎀을 꽂아 놓은 상태에서 리부팅시 모뎀을 인식하지 못할 때는 http://www.draisberghof.de/usb_modeswitch/bb/viewtopic.php?t=794&sid=74e7064df361371e772312c1813b1c20 에서 "Josh"님의 글을 참고하라. 원인 치료가 아닌 증상 치료로 상황을 넘어가기 위해서는 "Josh"님이 제시한 아래 방법을 이용하라. 다음 코드를 /etc/rc.local에 넣으면 된다. 
