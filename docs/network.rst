@@ -375,8 +375,6 @@ ttyUSB#에서 번호만 해당 장치에 맞게 변경해 주면 된다.
     exec 2> /tmp/rc.local.debug
     set -x
 
-    echo "booting...." > /tmp/ipaddr
-
     wvdial -C /etc/wvdial1.conf &
 
 2,3,5 줄을 추가하여 wvdial에서 출력되는 내용들을 /tmp/rc.local.debug 에 
