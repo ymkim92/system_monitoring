@@ -1,5 +1,5 @@
-로그
-----
+로그 (syslog)
+-------------
 
 모니터링 시스템에서 로그 보다 더 중요한 것이 있을까? 나는 없다고 생각한다.
 자신만의 로그를 만들어 사용할 수도 있겠지만, 
@@ -16,13 +16,13 @@ syslog를 이용하면, 원격시스템 내부에서는 물론이고 로그의 �
 syslog는 특정 이벤트가 발생하는 시점들을 관리할 수도 있고, 시스템에 문제가
 발생했을 때 원인을 분석하는 디버깅 용도로도 매우 유용하다.
 
+.. note:: syslog는 IETF의 `RFC 5424 <http://tools.ietf.org/html/rfc5424>`_ 로 등록되어 있다. RFC 5424에는 syslog 메시지를 인터넷 상으로 전달하는 방법을 기술한다.
+
 syslog 출력의 예
 ^^^^^^^^^^^^^^^^
 
 다음은 ``/var/log/syslog`` 의 내용 일부이다. syslog가 설치된 시스템에서는
 기본적으로 이 화일에 시스템에서 발생하는 로그들을 출력한다. 
-
-.. note:: apache와 같은 프로그램은 별도의 로그 파일에 로그를 기록한다. ubuntu의 경우 ``/var/log/apache2/`` 아래에 access log과 error log를 별도로 저장한다.
 
 ::
 
@@ -36,6 +36,8 @@ syslog 출력의 예
 이후 호스트 이름과 프로세스 이름을 출력하며, 여기까지는 
 syslog에서 자동으로 출력해 주는 부분이다. 콜론(:) 이후의 내용이 
 로그를 찍는 이유를 설명하는 메시지 부분이다.
+
+.. note:: apache와 같은 프로그램은 syslog의 기준을 따르지 않는 독자적인 로그를 별도의 로그 파일에 기록한다. ubuntu의 경우 ``/var/log/apache2/`` 아래에 access log과 error log를 별도로 저장한다.
 
 log level
 ^^^^^^^^^
@@ -195,47 +197,59 @@ log level을 입력으로 넣기 위해서는 -p 옵션을 사용한다.
 (http://shallowsky.com/blog/linux/rsyslog-conf-tutorial.html
 의 Rules Section을 보라).
 
+..
+    날짜와 시간 형식 변경
+    ^^^^^^^^^^^^^^^^^^^^^
 
-날짜와 시간 형식 변경
-^^^^^^^^^^^^^^^^^^^^^
+    syslog의 기본 날짜에는 년도가 빠져있다. 어떤이는 이에 불만(?)을 가질 수 있다.
+    또 다른이는 좀 더 정확한 시간을 기록하고 싶어한다. 
+    이런 사람들의 요구를 만족하기 위한 방법을 알아보자.
 
-syslog의 기본 날짜에는 년도가 빠져있다. 어떤이는 이에 불만(?)을 가질 수 있다.
-또 다른이는 좀 더 정확한 시간을 기록하고 싶어한다. 
-이런 사람들의 요구를 만족하기 위한 방법을 알아보자.
+    .. note:: syslog에서는 날짜와 시간 뿐 아니라 나머지 모든 값들에 대해서도 출력 순서나 형식을 변경할 수 있다. http://www.rsyslog.com/doc/rsyslog_conf_templates.html 를 참고하라.
 
-[20130227-1130]
-rsyslog의 기본 timestamp에 년도 추가하기?
-- http://www.rsyslog.com/using-a-different-log-format-for-all-files/
-rsyslog에 milli second 추가하기
+    http://www.rsyslog.com/using-a-different-log-format-for-all-files/ 
 
-==>
-/etc/rsyslog.d/50-default.conf 화일을 아래와 같이 수정
+    http://www.rsyslog.com/doc/rsyslog_conf_templates.html
 
-맨 위에 아래 줄 추가
-$template myFormat,"%TIMESTAMP:::date-pgsql% %HOSTNAME% %syslogtag%%msg:::sp-if-no-1st-sp%%msg:::drop-last-lf%\n"
+    ``/etc/rsyslog.d/50-default.conf`` 화일의 맨 윗줄에 
+    아래 내용을 추가하라.
 
-변경된 포맷을 적용할 화일을 아래와 같이 선택
-local0.*            /var/log/mb_serial.log;myFormat
+    ::
 
-아래와 같이 변경된 포맷으로 출력
-Feb 27 12:03:07 ymkim-AO756 ymkim: log test..1
-2013-02-27 12:38:33 ymkim-AO756 ymkim: log test..3
+        $template myFormat,"%TIMESTAMP:::date-pgsql% %HOSTNAME% %syslogtag%%msg:::sp-if-no-1st-sp%%msg:::drop-last-lf%\n"
 
+    새로운 포맷인 myFormat을 아래와 같이 특정 로그 화일에 적용할 수 있다.
 
-아래를 사용하면
-$template myFormat,"%TIMESTAMP:::date-pgsql%.%timereported:1:3:date-subseconds% %HOSTNAME% %syslogtag%%msg:::sp-if-no-1st-sp%%msg:::drop-last-lf%\n"
-이런 결과
-2013-02-27 13:55:46.428 ymkim-AO756 ymkim: log test..3
+    ::
 
-DateFormat  New format, additional parameter is needed. See below.
-mysql   format as mysql date
-pgsql   format as pgsql date
-rfc3164 format as RFC 3164 date
-rfc3164-buggyday    similar to date-rfc3164, but emulates a common coding error: RFC 3164 demands that a space is written for single-digit days. With this option, a zero is written instead. This format seems to be used by syslog-ng and the date-rfc3164-buggyday option can be used in migration scenarios where otherwise lots of scripts would need to be adjusted. It is recommended not to use this option when forwarding to remote hosts - they may treat the date as invalid (especially when parsing strictly according to RFC 3164).
-rfc3339 format as RFC 3339 date
-unixtimestamp   format as unix timestamp (seconds since epoch)
-subseconds  just the subseconds of a timestamp (always 0 for a low precision timestamp)
+        local0.*            /var/log/test.log;myFormat
 
+    확인을 위해 아래 명령을 실행하면, 다음과 같은 결과를 확인한 수 있다.
+
+    ::
+
+        $ logger -p local0.info log test..3
+        $ tail /var/log/test.log
+        ...
+        Feb 27 12:03:07 ymkim-AO756 ymkim: log test..1
+        2013-02-27 12:38:33 ymkim-AO756 ymkim: log test..3
+
+    milli second 추가하기
+    """""""""""""""""""""
+
+    아래를 사용하면
+
+    ::
+
+        $template myFormat,"%TIMESTAMP:::date-pgsql%.%timereported:1:3:date-subseconds% %HOSTNAME% %syslogtag%%msg:::sp-if-no-1st-sp%%msg:::drop-last-lf%\n"
+
+    이런 결과
+
+    ::
+
+        2013-02-27 13:55:46.428 ymkim-AO756 ymkim: log test..3
+
+    DateFormat  New format, additional parameter is needed. See below.
 
 
 
