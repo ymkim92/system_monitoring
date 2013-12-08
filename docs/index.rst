@@ -8,7 +8,7 @@ ubuntu로 구축하는 원격시스템 모니터링 및 데이터 시각화
 
 최초 작성일: 2013년 11월 25일
 
-김영민(ymkim92@gmail.com)
+김영민 (https://github.com/ymkim92/system_monitoring)
 
 목차:
 

@@ -5,3 +5,6 @@ sphinx 로 작성한 문서이고요.
 아래 링크에서 글을 읽으실 수 있습니다.
 
 http://system-monitoring.readthedocs.org/en/latest/
+
+
+김영민 (ymkim92@gmail.com)
