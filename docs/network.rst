@@ -390,8 +390,8 @@ ttyUSB#에서 번호만 해당 장치에 맞게 변경해 주면 된다.
     echo “16d8 700b" > /sys/bus/usb-serial/drivers/option1/new_id
     echo “16d8 7003" > /sys/bus/usb-serial/drivers/option1/new_id
 
-MINI PCI-E 타입 모뎀
-^^^^^^^^^^^^^^^^^^^^
+MINI PCI-E 타입 
+^^^^^^^^^^^^^^^
 
 최근에 잘나가고 있는 국내 업체중에 `모다정보통신 <http://web.modacom.co.kr/ko/index.php>`_ 이라는 곳이 있다.
 이 곳에서는 이 글에서 다루고 있는 원격 모니터링 시스템의 통신 부분에 대한
