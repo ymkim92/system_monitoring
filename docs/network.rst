@@ -21,7 +21,138 @@ KT에서도 iplug라는 이름으로 판매한다.
 에그 타입    
 ^^^^^^^^^
 
-wpa 설정
+무선랜 AP에 접속하는 것과 동일하므로 이 절에서는 보안이 강화된 wpa 인증으로
+설정된 AP에 접속하는 방법을 다루고자 한다.
+
+무선랜(WiFi)를 이용하기 위해서는 무선랜 AP(공유기)에 접속해야 한다.
+다른 사람이 사용하지 못하게 하거나, 나의 통신 내용을 다른 사람에게 
+보여주지 않기 위해 보안 기법을 사용한다.
+예전에는 WEP라는 방법을 많이 사용했는데, 
+보안에 문제가 많다고 해서 요즘은 WPA/WPA2를 사용한다.
+
+스마트폰이나 윈도우에서는 이 새로운 보안 기법을 사용하는데 
+큰 문제가 없어 보이는데... 리눅스에서는 조금까다롭다고 생각된다.
+물론 우분투에서도 GUI를 이용하면 WPA를 간단하게 이용할 수 있다. 
+하지만, GUI를 사용하지 않는 서버버전 같은 경우에는 명령어를 
+사용해서 WPA인증을 통과해야 하는데, 
+이 과정이 조금 복잡하다.
+
+WPA인증을 하기 위한 리눅스 명령어는 wpa_supplicant 이다. 
+추가로 인증키를 만들기 위해서는 wpa_passphrase 명령어를 이용한다.
+위 두 명령어만 있으면 WPA 인증을 이용할 수 있으며, 
+자세한 설명은 다음 링크에서 확인할 수 있다. (https://help.ubuntu.com/community/WifiDocs/WPAHowTo)
+
+참고로 테스트 환경은 ubuntu 12.04 server 버전이다.
+
+간단히 과정을 설명하면, 
+
+인증키 만들기
+"""""""""""""
+
+::
+
+    $ wpa_passphrase NetworkEssid TextPassphrase
+      # reading passphrase from stdin
+      TextPassphrase
+      network={
+            ssid="NetworkEssid"
+            #psk="TextPassphrase"
+            psk=945609a382413e64d57daef00eb5fab3ae228716e1e440981c004bc61dccc98c
+      }
+    $ wpa_passphrase NetworkEssid TextPassphrase > wpa.conf
+ 
+첫번째 명령어는 출력결과를 확인해 보기 위한 것이고, 
+두 번째 명령어는 이 결과를 현재 폴더에 wpa.conf라는 이름으로 저장한다. 
+이 화일은 wpa_supplicant 명령어의 input으로 사용되어 AP 접속에 사용된다. 
+wpa_passphrase의 두 인자로 NetworkEssid와 TextPassphrase을 사용하며,
+networkEssid는 무선랜 AP 검색을 하면 나오는 이름이고, 
+TextPassphrase는 AP에 설정한 접속 암호이다.
+
+무선랜 AP에 연결하기
+""""""""""""""""""""
+
+::
+
+    $ sudo wpa_supplicant -Dnl80211 -iwlan0 -cwpa.conf
+    [sudo] password for your_id: 
+    Trying to authenticate with 00:07:ab:5d:f9:15 (SSID='NetworkEssid' freq=2452 MHz)
+    CTRL-EVENT-DISCONNECTED bssid=00:07:ab:5d:f9:15 reason=2
+    Trying to associate with 00:07:ab:5d:f9:15 (SSID='NetworkEssid' freq=2452 MHz)
+    Associated with 00:07:ab:5d:f9:15
+    WPA: Key negotiation completed with 00:07:ab:5d:f9:15 [PTK=TKIP GTK=TKIP]
+    CTRL-EVENT-CONNECTED - Connection to 00:07:ab:5d:f9:15 completed (auth) [id=0 id_str=]
+
+위 예제는 연결이 성공한 경우이다. 마지막 줄에 연결되었다는 설명
+(CTRL-EVENT-CONNECTED)이 나오고 더 이상의 추가적인 메시지 출력이 되지 
+않는다. 만약 문제가 있으면 출력문이 계속 나온다.
+-D 옵션은 드라이버를 정해 주는 것이고, 
+-i 옵션은 무선랜 인터페이스 이름을 지정하는 것이며, 
+-c 옵션에는 인증키 만들기에서 생성한 키화일을 적어주면 된다.
+
+인터넷을 찾아보면 나오는 대부분의 사이트에서는 드라이버로 wext를 
+사용하면 된다고 나오지만, 
+`NF95A-270-LF
+<http://www.jetway.com.tw/jw/ipcboard_view.asp?productid=721&proname=NF95A-270-LF>`_ 에서는 wext 로 무선랜 AP 접속이 실패한다.
+자신의 시스템에서 사용할 수 있는 드라이버의 종류를 보는 방법은 
+아래 명령을 수행한 후, 중간쯤에 drivers라고 표시된 부분에 나와 있는 
+드라이버들을 모두 적용해 보는 것이다.
+
+::
+
+    $ wpa_supplicant -h
+    ...
+    This product includes software developed by the OpenSSL Project
+    for use in the OpenSSL Toolkit (http://www.openssl.org/)
+
+    usage:
+      wpa_supplicant [-BddhKLqqstuvW] [-P] [-g] \
+            -i -c [-C] [-D] [-p] \
+            [-b] [-f] \
+            [-o] [-O] \
+            [-N -i -c [-C] [-D] \
+            [-p] [-b] ...]
+
+    drivers:
+      wext = Linux wireless extensions (generic)
+      nl80211 = Linux nl80211/cfg80211
+      wired = Wired Ethernet driver
+    options:
+      -b = optional bridge interface name
+      -B = run daemon in the background
+      -c = Configuration file
+      -C = ctrl_interface parameter (only used if -c is not)
+    ...
+
+이 문제로 고민하는 분들에게 도움이 되길 기원한다.ㅋㅋ
+
+드라이버가 맞지 않으면 다음과 같은 에러가 나온다.
+
+::
+
+    "WPA: 4-Way Handshake failed" 
+
+부팅시 자동으로 WPA인증하기
+"""""""""""""""""""""""""""
+
+생성한 wpa.conf화일을 /etc 아래에 저장하시고 /etc/network/interfaces 
+화일을 약간 수정한다.
+
+::
+
+    $sudo cp wpa.conf /etc
+    $sudo vi /etc/network/interfaces
+
+
+화일 내용에서 wlan0쪽을 아래와 같이 수정
+
+::
+
+    auto wlan0
+    iface wlan0 inet dhcp
+            wpa-driver nl80211
+            wpa-conf /etc/wpa.conf
+
+
 
 USB 타입
 ^^^^^^^^
@@ -202,11 +333,27 @@ ttyUSB#에서 번호만 해당 장치에 맞게 변경해 주면 된다.
 ``ifconfig`` 명령으로 ppp0와 ppp1으로 각각 잡힌 것을 확인할 수 있다.
 
 .. figure:: _static/network/kt_modem8.png
+
+좌하단은 KT 모뎀이고 우하단은 SKT 모뎀이다.
+
+.. figure:: _static/network/modem1.png
     
 인터페이스 이중화
 """""""""""""""""
+윗 절에서 두 개의 모뎀을 장치로서 인식시키는 지점까지는 성공하였다. 
+하지만, 나중에 인식된 모뎀에서 라우팅 테이블을 선점하여 설정
+(default route) 하기 때문에
+일반적인 통신에서는 나중에 인식된 모뎀만을 이용하여 통신이 이루어진다.
+본 절에서는 두 인터페이스를 모두 이용하여 통신할 수 있는 방법을 
+찾을 수 있는 곳만을 소개한다.
 
-문제점
+ * http://kindlund.wordpress.com/2007/11/19/configuring-multiple-default-routes-in-linux/
+ * http://www.rjsystems.nl/en/2100-adv-routing.php
+
+두 개의 인터페이스를 동시에 사용하여 유선 네트워크에 비해 신뢰성이 떨어지는
+무선망의 특성을 상쇄시키려는 노력으로 이중화를 시도하였다.
+그러나, 아래와 같은 문제들을 아직 해결하지 못하여 이중화를 비중있게 
+다루지 않는다.
 
 - /dev/ttyUSB# 을 잡을 때 순서가 바뀌는 경우가 있거나, 
   USB 모뎀을 제외한 다른 장치가 연결되어 있을 경우에는
@@ -214,8 +361,55 @@ ttyUSB#에서 번호만 해당 장치에 맞게 변경해 주면 된다.
   발생, ttyUSB 번호를 고정시키는 방법 필요
 - 장치인식이 안되는 경우 발생
 
+
+
+부팅시에 자동으로 인식시키기
+""""""""""""""""""""""""""""
+
+``/etc/rc.local`` 에 아래 코드를 추가하여 부팅시점에 자동으로 USB 모뎀을 
+인식시킬 수 있다.
+
+::
+
+    #!/bin/sh -e
+    exec 2> /tmp/rc.local.debug
+    set -x
+
+    echo "booting...." > /tmp/ipaddr
+
+    wvdial -C /etc/wvdial1.conf &
+
+2,3,5 줄을 추가하여 wvdial에서 출력되는 내용들을 /tmp/rc.local.debug 에 
+저장할 수 있다.
+
+.. note:: 부팅후에 USB 모뎀을 꽂고 wvdial을 실행시키면 잘 인식이 되지만, 스크립트를 적용시키고 USB 모뎀을 꽂아 놓은 상태에서 리부팅시 모뎀을 인식하지 못할 때는 http://www.draisberghof.de/usb_modeswitch/bb/viewtopic.php?t=794&sid=74e7064df361371e772312c1813b1c20 에서 "Josh"님의 글을 참고하라. 원인 치료가 아닌 증상 치료로 상황을 넘어가기 위해서는 "Josh"님이 제시한 아래 방법을 이용하라. 다음 코드를 /etc/rc.local에 넣으면 된다. 
+
+  ::
+    
+    modprobe -v option
+    echo “16d8 700b" > /sys/bus/usb-serial/drivers/option1/new_id
+    echo “16d8 7003" > /sys/bus/usb-serial/drivers/option1/new_id
+
 MINI PCI-E 타입 모뎀
-""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^
+
+최근에 잘나가고 있는 국내 업체중에 `모다정보통신 <http://web.modacom.co.kr/ko/index.php>`_ 이라는 곳이 있다.
+이 곳에서는 이 글에서 다루고 있는 원격 모니터링 시스템의 통신 부분에 대한
+모듈을 개발/판매하는 회사이다. `TTA <https://tta.or.kr/>`_ 를 통해 모니터링 시스템용 통신 
+모듈에 대한 표준화에도 앞장서고 있는 회사이다.
+관련자료를 `여기 <https://www.google.co.kr/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0CCcQFjAA&url=http%3A%2F%2Fedu.tta.or.kr%2Fsub3%2Fdown.php%3FNo%3D123%26file%3DM2M_3-1.pdf&ei=duOjUuWnNsz-lAX82YGIDA&usg=AFQjCNEQLdFlf78NbZqzJbsxw8jFb1UitQ&sig2=buiGzXU_TRVqPvuMXqroag&bvm=bv.57752919,d.dGI&cad=rjt>`_ 에서
+다운로드 할 수 있다.
+
+분명한 사실은 몇몇 노트북에서 현재시점(2013년 12월)에 
+MINI PCI-E 타입의 WWAN 모뎀을 
+이용하여 이동통신망의 데이터 통신을 이용할 수 있으나, 아직까지는 표준화가
+되어 있지 않아 무선랜 모듈과 같이 범용적인 모뎀은 존재하지 않는다.
+하지만, 원격지 모니터링 시스템의 통신 모듈의 궁극적인 지향점은
+MINI PCI-E 타입과 같이 소형의 모듈을 표준화하여 
+컴퓨터 내에 탈착할 수 있으며 이동통신망을
+이용하여 통신하는 것이라고 생각한다.
+
+.. note:: 이 밖에 관련 업체로 http://www.telit.com/ , http://opengear.com/ 등이 있다.
 
 이렇게 무선이동통신을 이용할 수 있으면 원격시스템에서 서버로의 접속이 
 가능해 진다. 그러나, 서버에서 원격시스템을 접근하려면 어떻게 해야 
