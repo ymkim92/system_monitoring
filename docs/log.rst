@@ -530,7 +530,7 @@ http://loganalyzer.adiscon.com/
 """""""""
 http://jasonwilder.com/blog/2012/01/03/centralized-logging/
 에는 최근에 새로 등장하고 있는 centralized logging 툴들을
-소개하고 있다. google trends로 분석헤 본 결과 logstash의 인기가 
+소개하고 있다. google trends로 분석해 본 결과 logstash의 인기가 
 급상승하고 있다.
 
 .. figure:: _static/log/log1.png
