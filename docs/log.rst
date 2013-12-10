@@ -523,8 +523,97 @@ TCP를 통해 로그를 보내고자 한다면, 아래처럼 수정한다.
 웹에서 syslog 결과보기 (Log Analyzer)
 """""""""""""""""""""""""""""""""""""
 
-http://loganalyzer.adiscon.com/
+`Log Analyzer
+<http://loganalyzer.adiscon.com/>`_
+를 개발하고 있는 Adiscon 사는 RFC 5424 (The syslog protocol)
+을 제출한 회사이다. 즉 syslog 전문회사로 웹에서 syslog를
+분석할 수 있는 툴을 제공한다.
 
+Log Analyzer는 php로 작성된 프로그램으로 웹서버인 apache와
+mysql 데이터베이스를 이용하여 사용자에게 최종화면을 제공한다.
+
+.. note:: ubuntu에서는 tasksel 이라는 명령어를 이용하여 LAMP 를 선택하면 쉽게 Apache + Mysql + Php 환경을 구축할 수 있다. 추가적으로 phpmyadmin 을 설치하면 웹에서 mysql 을 편리하게 관리할 수 있다.
+ ::
+
+    $ sudo apt-get install phpmyadmin
+
+apache와 mysql, php가 설치되어 있다는 가정하에 이하 내용을 진행한다.
+syslog의 로그를 화일이 아닌 데이터베이스에 저장하면, 검색어를 이용해
+보고 싶은 로그만을 간추려 보기에 편리하다. 
+
+::
+
+    $ sudo apt-get install rsyslog-mysql
+
+위의 명령어를 입력하여 syslog의 로그를 mysql로 입력하는 프로그램을
+설치한다. 설치중에 새로운 데이터베이스와 
+테이블을 만들 것을 요구하는 화면이 나온다.
+Yes를 눌러 데이터베이스를 만들어라. 
+
+.. figure:: _static/log/rsyslog-mysql.png
+
+    
+다음은 mysql 관리자(root)의 비밀번호를 묻는다. mysql 설치시 또는 이후 변경한
+관리자 비밀번호를 입력한다.
+
+그 다음으로 rsyslog-mysql 사용자를 위한 새로운 비밀번호 입력을 
+요구한다. 확인을 위해 한 번 더 비밀번호를 입력하라 
+(이 부분은 phpmyadmin을 설치할 때도 동일하게 묻는 것이다).
+
+.. figure:: _static/log/rsyslog-mysql2.png
+
+rsyslog-mysql의 설치가 완료되면 ``/var/log/syslog`` 에 
+
+이제 데이터베이스에 대한 준비는 완료되었다. 본격적으로 
+Log Analyzer를 설치해 보자.
+http://loganalyzer.adiscon.com/downloads 에서 최신 버전을 다운받으라.
+다운 받은 폴더로 이동한 후 아래를 차례대로 실행하라.
+
+::
+
+     $ tar zxvf loganalyzer-3.6.5.tar.gz 
+     $ cd loganalyzer-3.6.5/
+     $ sudo mkdir /var/www/logs
+     $ sudo cp -R src/* /var/www/logs
+     $ sudo cp -R contrib/* /var/www/logs
+     $ cd /var/www/logs
+     $ sudo chmod +x configure.sh secure.sh
+     $ sudo ./configure.sh 
+
+이제 브라우저에 ``http://localhost/logs`` 를 입력하면, 아래와 같은 오류
+화면이 나온다. 오류가 나오는 것이 정상이므로 놀라지 말라~~
+
+.. image:: _static/log/loganalyzer1.png
+     
+
+Click here to Install Adiscon LogAnalyzer! 에서 ``here`` 
+를 누르면 설정화면으로 이동한다.
+다음 내용을 참고하여 설정을 진행하라.
+
+
+* Number of syslog messages per page = 50 (default)
+  * 페이지당 출력되는 메시지의 수를 정의한다. 웹 인터페이스에서도
+    이 값을 변경할 수 있으므로 우선은 default를 선택하라.
+* Message character limit for the main view = 80 (default)
+  * 로그 메시지를 몇 글자까지 표시할 지 결정한다. 잘린 부분은 마우스를
+    가져다 대면 볼 수 있다.
+  * 이 값을 0으로 설정하면, 전체 메시지를 모두 출력하므로 많은 사람들이
+    사용하는 값이다.
+* Show message details popup (default yes) = yes (default). 
+  * 
+  Note that many people find the popups intrusive and prefer to disable them. Use "no" in this case.
+* During the setup you will also be prompted to enable the user database. Do so and enter in the information that is requested.
+A couple of pages later you will be prompted for the main (admin) user.
+The defaults on Step 7 demonstrate that it is possible to use this without the database backend. We need to change this to match our setup though.
+Name the source something logical seeing as it is going to be the compiled logs from all your servers.
+Source Type = MYSQL Native
+Select View = Syslog Fields
+Table type = MonitorWare
+Database Host = localhost
+Database Name = Syslog
+Database Tablename = SystemEvents
+Database User = rsyslog
+Enable Row Counting = no
 
 최근 동향
 """""""""
