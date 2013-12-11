@@ -3,7 +3,7 @@
 
 모니터링 시스템에서 로그 보다 더 중요한 것이 있을까? 나는 없다고 생각한다.
 자신만의 로그를 만들어 사용할 수도 있겠지만, 
-사실상의 로그 표준으로 사용되고 있는 syslog 그 중에서도 ubuntu에서
+사실상의 로그 표준으로 사용되고 있는 syslog, 그 중에서도 ubuntu에서
 기본으로 사용하는 rsyslog를 이용하여 로그를 출력하고자 한다.
 편의상 rsyslog를 syslog로 부르도록 하고 꼭 rsyslog 로 구분하여
 나타낼 필요가 있을 때만 rsyslog 를 사용할 것이다.
@@ -22,7 +22,7 @@ syslog 출력의 예
 ^^^^^^^^^^^^^^^^
 
 다음은 ``/var/log/syslog`` 의 내용 일부이다. syslog가 설치된 시스템에서는
-기본적으로 이 화일에 시스템에서 발생하는 로그들을 출력한다. 
+기본적으로 시스템에서 발생하는 로그들을 이 화일에 출력한다. 
 
 ::
 
@@ -34,7 +34,7 @@ syslog 출력의 예
 
 위의 예에서 보인바와 같이 syslog의 출력은 날짜와 시간으로 시작한다. 
 이후 호스트 이름과 프로세스 이름을 출력하며, 여기까지는 
-syslog에서 자동으로 출력해 주는 부분이다. 콜론(:) 이후의 내용이 
+syslog에서 자동으로 출력해 주는 부분이다. 콜론(:) 이후의 내용은 
 로그를 찍는 이유를 설명하는 메시지 부분이다.
 
 .. note:: apache와 같은 프로그램은 syslog의 기준을 따르지 않는 독자적인 로그를 별도의 로그 파일에 기록한다. ubuntu의 경우 ``/var/log/apache2/`` 아래에 access log과 error log를 별도로 저장한다.
@@ -341,7 +341,8 @@ logrotate가 하는 일이 바로 이것이다.
     apt         dpkg         rsyslog  ufw
     consolekit  pm-utils     samba    unattended-upgrades
 
-``dpkg`` 화일을 보면, 앞 부분에 이런 내용이 있다.
+위의 화일들중에서 ``dpkg`` 을 이용해 설명하고자 한다.
+화일을 보면, 앞 부분에 이런 내용이 있다.
 
 .. code-block:: sh
     :linenos:
@@ -401,7 +402,8 @@ logrotate가 하는 일이 바로 이것이다.
 보관한다.
 
 네번째와 다섯번째 줄은 마지막에 숫자가 붙은 로그들을 압축하여 관리하는 것을
-뜻하며, 여섯번째 줄의 ``missingok`` 는 저장하고 있어야 할 로그중 
+뜻하며, 여섯번째 줄의 ``missingok`` 는 연속적으로 번호가 부여되어
+존재해야 하는 로그 파일 중에서 
 빠진 부분이 있더라도 무시하고 넘어가겠다는 의미이다.
 
 ``notifempty`` 는 로그 화일이 비어 있을 경우에는 logrotate를 수행하지 
@@ -409,7 +411,7 @@ logrotate가 하는 일이 바로 이것이다.
 
 .. note:: 화일크기에 따라 로그를 구분하기 위해서는 https://www.digitalocean.com/community/articles/how-to-manage-log-files-with-logrotate-on-ubuntu-12-10 을 보라.
 
-사용자의 logrotate를 추가하기 위해서는 ``/etc/logrotate`` 아래에 
+새로운 logrotate를 추가하기 위해서는 ``/etc/logrotate`` 아래에 
 임의의 화일을 생성하고 위의 내용을 참고하여 목적에 맞게
 내용을 추가하면 된다.
 
@@ -426,7 +428,7 @@ centralized logging 이란 중앙에서 관리해야 할
 
 원격시스템에서 서버로 로그를 보내는 것은 비교적 간단하게
 설정할 수 있지만, 서버에서는 로그를 화일에 저장할지, DB에
-저장할지, 저장된 내용을 어떻게 보여줄지 등 좀 더 복잡한 
+저장할지, 저장된 내용을 어떻게 보여줄지 등은 좀 더 복잡한 
 설정이 필요하다.
 
 .. note:: 본 절은 http://www.linuxjournal.com/content/centralized-logging-web-interface 을 참고하여 작성하였다.
@@ -517,9 +519,20 @@ TCP를 통해 로그를 보내고자 한다면, 아래처럼 수정한다.
 
     local0.*	@@your_server_name_or_ip_address
 
-.. note:: 이 내용은 `이 문서 <http://www.canonical.com/sites/default/files/active/Whitepaper-CentralisedLogging-v1.pdf>`_ 를 참고하라(18쪽 중간쯤)
+서버에서 대기포트번호를 변경하였을 경우에는 아래와 같은 형식으로 514
+포트번호를 바꿀 수 있다.
+
+::
+
+    local0.*	@@your_server_name_or_ip_address:new_port
+    ex) local0.info @@monitor.com:10514
+
+
+.. note:: 본 절의 내용은 `이 문서 <http://www.canonical.com/sites/default/files/active/Whitepaper-CentralisedLogging-v1.pdf>`_ 를 참고하라(18쪽 중간쯤)
 
 전송한 로그는 서버의 ``/var/log/syslog`` 에 기록된다.
+
+.. note:: 원격시스템에서 로그 메시지를 전송할 시점에 통신이 불가능하였을 경우 통신이 복구되고 나서 다음 로그 메시지를 전송할 때 이전에 전송되지 못한 메시지도 함께 전송된다.  
 
 웹에서 syslog 결과보기 (Log Analyzer)
 """""""""""""""""""""""""""""""""""""
@@ -563,7 +576,9 @@ Yes를 눌러 데이터베이스를 만들어라.
 
 .. figure:: _static/log/rsyslog-mysql2.png
 
-rsyslog-mysql의 설치가 완료되면 ``/var/log/syslog`` 에 
+rsyslog-mysql의 설치가 완료되면 
+``/var/log/syslog`` 뿐만 아니라, mysql 데이터베이스에도 
+로그 메시지들이 저장된다.
 
 이제 데이터베이스에 대한 준비는 완료되었다. 본격적으로 
 Log Analyzer를 설치해 보자.
@@ -589,35 +604,52 @@ http://loganalyzer.adiscon.com/downloads 에서 최신 버전을 다운받으라
 
 Click here to Install Adiscon LogAnalyzer! 에서 ``here`` 
 를 누르면 설정화면으로 이동한다.
-다음 내용을 참고하여 설정을 진행하라.
+다음 내용을 참고하여 설정을 진행하라. 
+
+.. note:: 설치 후에도 웹에서 아래 설정들을 변경할 수 있다.
 
 
 * Number of syslog messages per page = 50 (default)
+
   * 페이지당 출력되는 메시지의 수를 정의한다. 웹 인터페이스에서도 이 값을 변경할 수 있으므로 우선은 default를 선택하라.
+
 * Message character limit for the main view = 80 (default)
+
   * 로그 메시지를 몇 글자까지 표시할 지 결정한다. 잘린 부분은 마우스를 가져다 대면 볼 수 있다.
   * 이 값을 0으로 설정하면, 전체 메시지를 모두 출력하므로 많은 사람들이 사용하는 값이다.
-* Show message details popup (default yes) = yes (default). 
-  * 
-  Note that many people find the popups intrusive and prefer to disable them. Use "no" in this case.
-* During the setup you will also be prompted to enable the user database. Do so and enter in the information that is requested.
-A couple of pages later you will be prompted for the main (admin) user.
-The defaults on Step 7 demonstrate that it is possible to use this without the database backend. We need to change this to match our setup though.
-Name the source something logical seeing as it is going to be the compiled logs from all your servers.
-Source Type = MYSQL Native
-Select View = Syslog Fields
-Table type = MonitorWare
-Database Host = localhost
-Database Name = Syslog
-Database Tablename = SystemEvents
-Database User = rsyslog
-Enable Row Counting = no
+
+* Show message details popup = yes (default). 
+
+  * 팝업을 싫어하시는 분은 no를 사용하라.
+
+* Enable User Database = no (default).
+
+  * 화일이 아닌 데이터베이스에 로그를 저장하였을 경우 yes로 변경하고 그 아래에 정보들을 입력한다.
+  * Database Name = Syslog
+
+.. image:: _static/log/loganalyzer2.png
+
+* Step 6 - Creating the Main Useraccount
+
+  * loganalyzer 웹 화면에 접근할 때 물어보는 아이디와 비밀번호를 설정한다.
+* Step 7
+
+.. image:: _static/log/loganalyzer3.png
+
+정상적으로 설정을 마쳤다면 Step 6에서 입력한 아이디와 
+비밀번호로 로그인 후 아래와 같은 결과를 볼 수 있다.
+
+.. figure:: _static/log/loganalyzer4.png
+    :scale: 70%
+
+``search`` 버튼을 누르면 다양한 검색 옵션을 사용할 수 있다.
 
 최근 동향
 """""""""
 http://jasonwilder.com/blog/2012/01/03/centralized-logging/
 에는 최근에 새로 등장하고 있는 centralized logging 툴들을
-소개하고 있다. google trends로 분석해 본 결과 logstash의 인기가 
+소개하고 있다. google trends로 분석해 본 결과 
+`logstash <http://logstash.net/>`_ 의 인기가 
 급상승하고 있다.
 
 .. figure:: _static/log/log1.png
