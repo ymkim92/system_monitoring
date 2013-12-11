@@ -271,11 +271,12 @@ hostname을 다르게 설정해 주는 것이 중요하다.
 
     $ hostname
 
-``-F`` 옵션으로 아래와 같이 바로 hostname을 변경할 수도 있다.
+..
+    ``-F`` 옵션으로 아래와 같이 바로 hostname을 변경할 수도 있다.
 
-::
+    ::
 
-    $ sudo hostname -F /etc/hostname
+        $ sudo hostname -F /etc/hostname
 
 
 C 코드에서 syslog 출력하기
@@ -592,13 +593,10 @@ Click here to Install Adiscon LogAnalyzer! 에서 ``here``
 
 
 * Number of syslog messages per page = 50 (default)
-  * 페이지당 출력되는 메시지의 수를 정의한다. 웹 인터페이스에서도
-    이 값을 변경할 수 있으므로 우선은 default를 선택하라.
+  * 페이지당 출력되는 메시지의 수를 정의한다. 웹 인터페이스에서도 이 값을 변경할 수 있으므로 우선은 default를 선택하라.
 * Message character limit for the main view = 80 (default)
-  * 로그 메시지를 몇 글자까지 표시할 지 결정한다. 잘린 부분은 마우스를
-    가져다 대면 볼 수 있다.
-  * 이 값을 0으로 설정하면, 전체 메시지를 모두 출력하므로 많은 사람들이
-    사용하는 값이다.
+  * 로그 메시지를 몇 글자까지 표시할 지 결정한다. 잘린 부분은 마우스를 가져다 대면 볼 수 있다.
+  * 이 값을 0으로 설정하면, 전체 메시지를 모두 출력하므로 많은 사람들이 사용하는 값이다.
 * Show message details popup (default yes) = yes (default). 
   * 
   Note that many people find the popups intrusive and prefer to disable them. Use "no" in this case.
