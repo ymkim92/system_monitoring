@@ -73,10 +73,25 @@ Internet Site를 선택한다.
 로그인 창이 나오고 아이디와 비밀번호를 입력하면 nagios 웹 화면을
 볼 수 있다.
 
-Domain name: test.com
+nagios는 기본적으로 localhost의 load, 현재 사용자, 디스크 공간
+등을 검사하도록 설정화일을 자동으로 생성한다. nagios 웹 화면 좌측
+메뉴에서 ``services`` 를 누르면 아래와 같이 기본으로 설정된 항목들을
+볼 수 있다(ubuntu 13.04 환경).
+
+
+.. image:: _static/nagios/install2.png
+    :scale: 70%
+
+.. note:: Disk Space와 SSH에서 발생한 에러에 대해서는 https://help.ubuntu.com/community/Nagios3 에서 Post Install Tasks를 참고하라.
+
+
+이제 nagios 설치를 완료하였으므로 설정을 해야 하지만, 그전에
+nagios의 기본 개념에 대한 이해를 하고 넘어가자.
 
 nagios core에 대한 간단한 소개
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. note:: 이 절은 David Dosephen의 Building a Monitoring Infrastructure with Nagios 를 참고하여 작성되었다.
+
 nagios의 핵심은 작은 크기의 모니터링 프로그램인 plugin 의 스케쥴링과 
 알림(notification)을 위한 프레임워크라고 정의할 수 있다.
 plugin은 exit 코드를 반환하여 plugin의 실행결과를 nagios에게
@@ -97,7 +112,6 @@ exit 코드는 아래와 같은 의미를 갖는다.
 
 .. note:: ls와 같은 유닉스 명령어도 nagios plugin과 동일한 방식으로 exit code를 반환하며, ``echo $?`` 명령어로 결과를 확인할 수 있다.
 
-.. note:: 이 절은 David Dosephen의 Building a Monitoring Infrastructure with Nagios 를 참고하여 작성되었다.
 
 nagios plugin은 exit code 이외에도 문자열을 반환하여 세부 정보를 관리자에게
 알릴 수 있다.
@@ -129,6 +143,78 @@ nagios plugin의 역할은 다음 두가지로 나눌 수 있다.
 사용해 볼 수 있다.
 
 .. note:: nagios에서는 많은 수의 plugin을 제공하고 있다. https://www.nagios-plugins.org/ 를 참고하라.
+
+원격지의 호스트에 대해서도 nagios를 실행할 수 있다. 이 절에서는
+ssh를 이용한 원리 설명에 집중할 것이다.
+원격 호스트의 상태를 모니터링하기 위해서 ssh의 원격지 명령어 수행방법을
+이용한다. 아래 명령은 원격 호스트 example.org의 
+test 계정 홈 디렉토리에서 ls를 수행한
+결과를 반환한다.
+
+::
+    
+    $ ssh test@example.org "ls -CF"
+    build/				 log/
+    tmp/
+    
+이 명령어에서 "ls -CF" 부분을 nagios plugin으로 교체하면 ssh 문 
+자체로 nagios plugin과 같은 역할을 하게 된다. 
+
+원격호스트(example.org)에 
+``/usr/local/bin/load_checker.sh`` 를 생성하고 아래 코드를
+내용으로 입력하라.
+
+.. code-block:: sh
+
+    #!/bin/bash
+    LOAD=`uptime | awk '{print $12}'`
+
+    if (( $(bc <<< "$LOAD > 1") ))
+    then
+        echo "Critical! load on 'hostname' is $LOAD"
+        exit 2
+    else
+        echo "OK! Load on 'hostname' is $LOAD"
+        exit 0
+    fi
+
+다음 명령을 실행하여 실행권한을 주고 실행시켜 보자.
+
+::
+
+    $ sudo chmod a+x /usr/local/bin/load_checker.sh
+    $ load_checker.sh
+    OK! Load on 'hostname' is 0.15
+    $ echo $?
+    0
+    
+이제 아래 명령으로 원격호스트의 명령을 실행시킬 수 있다.
+
+::
+    
+    $ ssh test@example.org /usr/local/bin/load_checker.sh
+    OK! Load on 'hostname' is 0.13
+    $ echo $?
+    0
+    
+위의 ssh 문을 nagios의 plugin으로 만들기 위해 아래와 같은 스크립트를 
+작성하여 서버에 저장한다.
+
+.. code-block:: sh
+
+    #!/bin/sh
+    #get the ouput from the remote load_checker script
+    OUTPUT=`ssh test@example.org "/usr/local/bin/load_checker.sh"`
+
+    #get the exit code
+    CODE=$?
+    echo $OUTPUT
+    exit $CODE
+
+nagios 서버에 위치한 위 코드는 완벽한 nagios plugin으로 
+원격호스트의 시스템 부하에 대한 출력문과 
+exit 코드를 반환한다.
+
 
 
 email notification
