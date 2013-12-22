@@ -94,6 +94,11 @@ nagios core에 대한 간단한 소개
 
 nagios의 핵심은 작은 크기의 모니터링 프로그램인 plugin 의 스케쥴링과 
 알림(notification)을 위한 프레임워크라고 정의할 수 있다.
+본 절에서는 nagios plugin의 원리와 구조에 대해 알아본 후, 
+nagios의 스케쥴링에 대해 알아보고자 한다.
+
+nagios plugin
+"""""""""""""
 plugin은 exit 코드를 반환하여 plugin의 실행결과를 nagios에게
 알릴 수 있으며,
 exit 코드는 아래와 같은 의미를 갖는다.
@@ -145,7 +150,7 @@ nagios plugin의 역할은 다음 두가지로 나눌 수 있다.
 .. note:: nagios에서는 많은 수의 plugin을 제공하고 있다. https://www.nagios-plugins.org/ 를 참고하라.
 
 원격지의 호스트에 대해서도 nagios를 실행할 수 있다. 이 절에서는
-ssh를 이용한 원리 설명에 집중할 것이다.
+ssh를 이용한 원격 모니터링의 원리 설명에 집중할 것이다.
 원격 호스트의 상태를 모니터링하기 위해서 ssh의 원격지 명령어 수행방법을
 이용한다. 아래 명령은 원격 호스트 example.org의 
 test 계정 홈 디렉토리에서 ls를 수행한
@@ -162,7 +167,8 @@ test 계정 홈 디렉토리에서 ls를 수행한
 
 원격호스트(example.org)에 
 ``/usr/local/bin/load_checker.sh`` 를 생성하고 아래 코드를
-내용으로 입력하라.
+내용으로 입력하라. 시스템 부하의 값이 1를 넘어가면 Critical 오류를
+발생시키는 코드이다.
 
 .. code-block:: sh
 
@@ -215,6 +221,22 @@ nagios 서버에 위치한 위 코드는 완벽한 nagios plugin으로
 원격호스트의 시스템 부하에 대한 출력문과 
 exit 코드를 반환한다.
 
+이 방법은 nagios에서의 원격 모니터링 원리를 잘 설명하지만,
+하나의 단점이 존재한다. 서버에서 원격 시스템으로 로그인 없이
+ssh 접속이 가능해야 한다. 
+이에 대해서는 :ref:`remote-ssh` 을 참고하라.
+
+nagios에서는 ssh를 이용하는 방법이외에 nagios에서 개발한
+NRPE (Nagios Remote Plugin Executor)를 이용해 원격시스템의
+모니터링을 수행할 수 있다. 자세한 방법은 각자 알아보시고,
+여기서는 이 정도로 마무리하고자 한다.
+
+스케쥴링
+""""""""
+
+
+nagios 설정
+^^^^^^^^^^^
 
 
 email notification
