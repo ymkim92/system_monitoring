@@ -339,6 +339,48 @@ plugin 실행 오류 발생시 check interval의 변화를 나타낸다.
 .. image:: _static/nagios/schedule2.png
     :scale: 70%
 
+재시도(retry)의 단계에서는 아직 완전한 상태변화를 인정하지 않는다.
+이 상태를 ``soft states``
+라고 말하며, 이는 ``soft error states`` 와 
+``soft recovery states`` 로 나눌수 있다.
+예상할 수 있는 바와 같이 OK상태에서 그 이외에 상태로 변화하는 상황을
+``soft error states`` 라고 하며, 반대의 경우는
+``soft recovery states`` 라고 한다.
+상태가 확정되면 ``hard states`` 라고 부른다.
+
+알림 (Notification)
+"""""""""""""""""""
+이메일 에이전트인 postfix에 대한 설정을 마쳤다면, 
+``hard states`` 로 변화가 발생하는 시점에 
+nagios는 자동으로 알림을 보낸다.
+
+알림이 어떻게 동작하는지를 이해하는 과정은 nagios 전체를 이해하는
+과정이라고 볼 수 있다.
+
+알림에 대한 현재 설정은 웹화면의 "Tactical Overview"에서 확인할
+수 있다. 알림과 관련한 문제발생시 유용한 정보를 제공할 것이다.
+
+알림의 상태는 plugin의 exit 코드와 비슷한 듯하며 다르다.
+host와 service 각각의 알림 상태는 아래 표와 같다.
+
++-----------------+----------------+
+| Host States     | Service States |
++=================+================+
+| Unreachable (u) | Unknown (u)    |
++-----------------+----------------+
+| Down (d)        | Critical (c)   |
++-----------------+----------------+
+| Recovered (r)   | Warning (w)    |
++-----------------+----------------+
+| Flapping (f)    | Recovered (r)  |
++-----------------+----------------+
+|                 | Flapping (f)   |
++-----------------+----------------+
+
+사용자는 nagios 설정시 위 표중에서 어떤 상태가 발생했을 때
+알림을 받을지 결정할 수 있다. Flapping은 상태 변화가 빈번하게 
+발생할 때 반환되는 상태값이고, recovered는 비정상상태에서 동작상태로
+복귀된 상태를 나타낸다.
 
 nagios 설정
 ^^^^^^^^^^^
