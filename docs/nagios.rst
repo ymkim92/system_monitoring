@@ -257,8 +257,30 @@ host는 인터넷에 연결된 장비를 가리키며, service는 host에서 제
 의 단일 정보만 존재하지만, service에 대해서는 여러 개의 서비스 check들이
 있을 수 있다.
 
+host 와 service의 구분이 필요한 이유는 다음과 같다. 
+host로의 접근이 불가능한 상태에서 그 host의 service에 대한 점검을
+진행하지 않으며, host가 up 상태일때만, service에 대한 스케쥴링을 수행한다.
 
-nagios 웹 화면의 왼쪽 메뉴를 보면 "hosts"와 "services"가 있다.
+이와 같은 계층구조를 host간에 또는 service간에도 설정할 수 있다.
+host들 간에는 앞으로 언급할 설정화일에서 parents 지시자(directive)를
+사용하여 설정하며, 물리적인 계층 구조로 설명할 수 없는 경우에는 
+의존성 정의 (dependency defintions)를 이용하여 논리적 계층구조를 
+정의한다.
+
+host 와 service 개념으로 나타내기 어려운 모니터링 대상도 있다.
+예를 들어 대학내의 메일 서비스를 예로 들면 메인 메일 서버와 
+메일을 전송하는 통신 장비들, 사용자용 웹 메일 관리자 등 여러 host와
+service들이 하나의 통합 서비스를 구성하는 경우도 있다. 
+이런 경우를 위해 nagios에서는 host group과 service group이라는 개념을
+제시한다. 즉 하나의 service group을 구성하는 host들과 service들을 
+하나로 묶어서 관리할 수 있는 기법이다.
+
+nagios 웹 화면의 왼쪽 메뉴를 보면 "hosts"와 "services", 
+"host groups", "service groups"가 있다. nagios 웹을 활용할 때
+제일 많이 볼 내용들이므로 이 시점에서 한 번씩 보면 좋을 것 같다.
+물론 아직 아무런 설정도 하지 않아, localhost에 대한 내용만 들어
+있지만, 이 곳에 나의 목적상
+무엇이 추가될 수 있는지 각자 고민해 보기 바란다.
 
 
 스케쥴링
@@ -270,11 +292,52 @@ exit code에 변화가 발생할 때 사용자에게 알려주는 역할을 한�
 변화된 값을 유지하는지에 따라 상태 변화가 있는 것으로 간주하는지를
 결정하는 방식을 스케쥴링(scheduling)에서 처리한다.
 
-cron에서는 명시적인 날짜와 시간을 이용하여 특정 작업을 수행한다.
-하지만, nagios에서는 plugin마다 다른 수행시간을 고려하여,
-exit code를 받은 뒤부터 다음 점검 시간까지의 간격을 지정하여 
-스케쥴링을 실행한다.
+service에 대한 점검은 host가 살아있는 상태에서만 의미를 갖는다.
+그러므로 일반적인 상황에서
+host에 대한 점검은 service에 대한 plugin에서 오류
+(0이 아닌 exit 코드값)를 반환할
+때에만 수행된다.
 
+cron에서는 명시적인 날짜와 시간을 이용하여 특정 작업을 수행한다.
+하지만, nagios에서는 plugin에서 결과값을 반환할 때까지 기다리는 
+시간을 정해 스케쥴링을 수행한다.
+이 지점에서 중요한 두 가지 점이 있을 수 있다.
+
+* plugin을 정해진 시간에 수행할 수 있는가?
+* 정해진 시간 내에 plugin의 수행을 완료할 수 있는가?
+
+첫 번째 지적에 대해, 정상적인 또는 시스템에 여유가 있는 상황에서는
+정해진 시간에 plugin을 실행할 수 있겠지만, 관리하는 모니터링의 대상이
+많아질수록 제시간에 실행하지 못하는 상황이 발생할 수 있다.
+제때에 실행하지 못했을 경우 다음 스케쥴링은 지연되지 않고 원래 실행되었어야 
+할 시간을 기준으로 그 다음 스케쥴링 시간에 plugin을 실행하기 위해 시도한다.
+
+두 번째 경우에서는, 네트워크의 문제 등으로 결과값을 받는데까지 걸리는
+시간이 길어질 수 있다.
+다음 그림은 두 번째 경우에 대해 잘 설명해 주고 있다.
+
+.. image:: _static/nagios/schedule1.png
+    :scale: 70%
+
+"Normal check interval"은 설정화일에서 정해지는 값으로 
+exit 코드 0(OK)을 반환할 경우의 스케쥴링
+기본 간격을 의미한다. exit 코드의 반환이 늦어지는 경우에는
+"Normal check interval"을 무시하고 결과값을 받은 잠시 후에 plugin의 
+수행을 시도한다.
+
+"Normal check interval"의 반대되는 개념으로 "retry check interval"이
+존재한다. 0 이외의 exit 코드를 반환한 경우 해당 오류가 지속되는지를
+검사하기 위한 간격이다. 정해진 횟수
+(max check attempts)만큼 plugin 실행 오류가 지속될 경우
+관리자에게 메일을 전송한다. "Max check attempts"에는 최초의 오류를 
+감지한 건도 포함한다. 그러므로 "max check attempts"를 1로 설정하면,
+재시도 없이 바로 ``notification`` 을 발생시킨다.
+
+아래 그림은 "Max check attempts"를 3으로 설정한 환경에서
+plugin 실행 오류 발생시 check interval의 변화를 나타낸다.
+
+.. image:: _static/nagios/schedule2.png
+    :scale: 70%
 
 
 nagios 설정
