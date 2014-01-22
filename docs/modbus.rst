@@ -360,7 +360,7 @@ modbus RTU의 간단한 구동을 살펴볼 것이다.
 
 ::
 
-        ctx = modbus_new_rtu("**/dev/pts/8**", 115200, 'N', 8, 1);
+        ctx = modbus_new_rtu("/dev/pts/8", 115200, 'N', 8, 1);
 
 
 make로 컴파일을 해 준 후, 아래 명령으로 서버를 실행시킨다.
