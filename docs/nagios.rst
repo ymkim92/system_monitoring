@@ -59,8 +59,8 @@ apache는 이미 설치되어 있다는 가정하에 아래 명령을 수행한�
 제일 먼저 나오는 창은 메일 전송을 담당하는 postfix 에 대한 설정이다.
 postfix는 nagios를 설치하고 웹화면을 구경한 후에 설치 및 설정할 수 
 있으므로 이 시점에서 중요한 부분은 아니라고 할 수 있다.
-"Postfix Configuration" 이 제목인 첫 창에서 OK를 클릭한 후 아래와 같이
-Internet Site를 선택한다. 
+"Postfix Configuration" 이 제목인 첫 창에서 아래와 같이
+Internet Site를 선택한 후 OK를 클릭한다. 
 
 .. image:: _static/nagios/install1.png
 
