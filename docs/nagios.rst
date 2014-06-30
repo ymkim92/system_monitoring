@@ -604,6 +604,12 @@ nagios에게 알리기 위해서는 외부 명령어(external command)에 대한
 | perfdata_timeout      | The length of time Nagios allows a perfdata handler to run. Defaults to 5 seconds.                       |
 +-----------------------+----------------------------------------------------------------------------------------------------------+
 
+설정을 마치면 아래 명령으로 nagios를 재 실행하여 변경된 설정을 적용하자. 
+
+::
+    
+    $ sudo service nagios3 restart
+
 Templetes
 """""""""
 
@@ -611,3 +617,5 @@ Templetes
 
 email notification
 ^^^^^^^^^^^^^^^^^^
+
+``/etc/nagios3/conf.d/contacts_nagios2.cfg`` 에서 
