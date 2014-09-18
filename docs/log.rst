@@ -529,7 +529,7 @@ TCP를 통해 로그를 보내고자 한다면, 아래처럼 수정한다.
     ex) local0.info @@monitor.com:10514
 
 
-.. note:: 본 절의 내용은 `이 문서 <http://www.canonical.com/sites/default/files/active/Whitepaper-CentralisedLogging-v1.pdf>`_ 를 참고하라(18쪽 중간쯤)
+.. note:: 본 절의 내용은 `이 문서 <https://insights.ubuntu.com/2010/10/04/centralised-logging-with-rsyslog/>`_ 를 참고하라(18쪽 중간쯤)
 
 전송한 로그는 서버의 ``/var/log/syslog`` 에 기록된다.
 
