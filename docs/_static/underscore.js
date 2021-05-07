@@ -64,7 +64,7 @@
   }
 
   // Current version.
-  _.VERSION = '1.4.3';
+  _.VERSION = '1.12.1';
 
   // Collection Functions
   // --------------------
